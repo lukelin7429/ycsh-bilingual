@@ -785,6 +785,7 @@ def topbar(css_root, active=""):
       <a href="{css_root}index.html"{cls('home')}>Course Home</a>
       <a href="{css_root}index.html#lessons">8 Lessons</a>
       <a href="{css_root}docent/"{cls('docent')}>Capstone</a>
+      <a href="{css_root}workshop/"{cls('workshop')}>For Teachers</a>
     </nav>
   </div>
 </header>"""
@@ -1060,6 +1061,7 @@ def render_hub():
       <h2>For teachers: made with AI<small>給老師：這門課是怎麼用 AI 做出來的</small></h2>
       <p>This whole course was drafted and refined with an AI assistant, then checked by a teacher. The reading, the vocabulary, the phrase bank, and the quiz all follow one repeatable template — so the same method can build a new course around <em>any</em> local landmark.</p>
       <p class="zh">這門課是先用 AI 草擬、再由老師審訂而成。文本、字彙、導覽句與測驗都依循同一套可複製的模板——同樣的方法，可以為「任何」在地景點打造一門新課。</p>
+      <a class="tn-btn" href="workshop/">See the workshop page · 看工作坊頁 →</a>
     </div>
     <div class="flow">
       <div class="label">The making-of, in 5 moves · 產製五步</div>
@@ -1102,11 +1104,192 @@ def render_hub():
         f.write(html)
 
 
+# ----------------------------------------------------------------------------
+# WORKSHOP PAGE (For Teachers) — the speaker's projectable one-pager
+# ----------------------------------------------------------------------------
+
+WS_FLOW = [
+    ("Pick a landmark + one object",
+     "選一個在地景點與一件文物",
+     "Choose something near your school. For us it was the Southern Branch and, say, a blue-and-white bowl. One gallery, one object — keep the scope small.",
+     "選學校附近的題材。我們選了故宮南院，再聚焦一件文物（例如一只青花碗）。一展廳、一文物，範圍要小。"),
+    ("Ask AI for a bilingual reading at the right level",
+     "請 AI 寫出對程度的雙語短文",
+     "Tell it the students' age, the language level, and the word count. Ask for English first with a Chinese gloss underneath each paragraph.",
+     "告訴它學生年齡、語言程度、字數，並要求英文在前、每段下方附中文輔助。"),
+    ("Generate Word-of-the-Day vocab + docent phrases",
+     "產出關鍵字與導覽實用句",
+     "Ask for 6–8 key words with part of speech, a simple definition, a Chinese gloss, and an example sentence — plus 5 useful guiding sentences.",
+     "請它給 6–8 個關鍵字（含詞性、簡單定義、中文、例句），再加 5 句導覽實用句。"),
+    ("Generate an English-only quiz with explanations",
+     "產出純英文選項的測驗＋解析",
+     "Ask for 4 multiple-choice questions, English options only, with a short bilingual explanation for each answer.",
+     "請它出 4 題選擇題、選項全英文，每題附簡短雙語解析。"),
+    ("You review, correct, and approve",
+     "老師審訂、修正、定稿",
+     "The AI drafts; the teacher decides. Check facts, level, tone, and rights before it reaches a student. This human step is the most important one.",
+     "AI 負責草擬，老師負責拍板。送到學生面前前，先查事實、程度、語氣與版權。這個人為步驟最關鍵。"),
+]
+
+WS_PROMPTS = [
+    ("Bilingual reading", "雙語短文",
+     'Write a short bilingual reading for <span class="ph">senior-high</span> students about '
+     '<span class="ph">[a blue-and-white porcelain bowl at the NPM Southern Branch]</span>. '
+     'English first, about <span class="ph">160</span> words, friendly and clear. After each English '
+     'paragraph add a Traditional-Chinese gloss to support understanding. Bold 4–6 useful vocabulary words.'),
+    ("Word of the Day", "關鍵字",
+     'From that reading, list <span class="ph">7</span> key words. For each give: the word, part of speech '
+     'as (n.)/(v.)/(adj.), a one-line English definition, a Traditional-Chinese gloss, and one example sentence '
+     'a museum guide might say.'),
+    ("Docent phrase bank", "導覽實用句",
+     'Give me <span class="ph">5</span> short sentences a student docent could say while showing this object '
+     'to an international visitor — welcoming, describing, and inviting a question. English with a '
+     'Traditional-Chinese translation under each.'),
+    ("English-only quiz", "純英文測驗",
+     'Write <span class="ph">4</span> multiple-choice comprehension questions on the reading. Four options each, '
+     '<span class="ph">English only</span>, one correct. Mark the answer and add a short bilingual explanation '
+     '(English + Traditional Chinese) for each.'),
+    ("The whole lesson, in one go", "一次生一整課",
+     'Using all of the above, assemble one lesson with five parts: (1) bilingual reading, (2) Word of the Day, '
+     '(3) docent phrase bank, (4) an English-only quiz with explanations, (5) a short "Your Turn" task. '
+     'Keep it at <span class="ph">senior-high</span> level and culturally respectful.'),
+]
+
+WS_CHECK = [
+    ("Accuracy 正確性", "Every fact about the museum, the artwork, and history is correct.",
+     "博物館、文物、歷史的每個說法都正確無誤。"),
+    ("Level 程度", "The English matches your students — clear words, not rare ones.",
+     "英文難度符合學生——用清楚的字，不用艱深字。"),
+    ("Sensitivity 文化敏感", "Sacred or cultural items (e.g. Buddhist art) are described with respect and neutrality.",
+     "神聖或文化性物件（如佛教藝術）以尊重、中性的方式描述。"),
+    ("Rights 版權與肖像", "Photos are licensed; student portraits have consent. When unsure, use text + gradients.",
+     "圖片有授權、學生肖像有同意書；不確定時就用文字＋漸層底。"),
+]
+
+
+def render_workshop():
+    title = f"For Teachers: Making Bilingual Materials with AI · {SITE}"
+    desc = ("A teacher-workshop companion page: how this place-based bilingual course was made with AI, "
+            "the 5-step production flow, copy-and-paste prompts, and a teacher review checklist.")
+    parts = [head(title, desc, "../assets/css/main.css")]
+    parts.append(topbar("../", active="workshop"))
+    parts.append("""
+<section class="page-hero tone-seal">
+  <div class="wrap">
+    <span class="lesson-no">For Teachers · 教師工作坊</span>
+    <h1>Making Bilingual Materials with AI<span class="zh">用 AI 產出雙語／英語教材</span></h1>
+    <p class="tagline">This whole course was drafted with AI and finished by a teacher. Here is exactly how — so you can do it too.
+      <span class="zh">這門課由 AI 草擬、老師定稿。以下是完整作法，您也能複製。</span></p>
+    <span class="gallery-pill">🎁 A gift to the teachers of Yung Ching SHS · 獻給永慶高中的英文老師</span>
+  </div>
+</section>""")
+
+    # Origin
+    parts.append("""
+<section>
+  <div class="wrap ws-lead">
+    <div class="section-head" style="margin-bottom:34px;">
+      <span class="eyebrow">Why this course exists</span>
+      <h2>The museum became the lesson</h2>
+      <div class="h2-zh">把門口的博物館，變成一堂課</div>
+    </div>
+    <p>Yung Ching's motto is <em>“connect with the world.”</em> A few minutes away stands a world-class Asian art museum — the National Palace Museum · Southern Branch. So instead of a generic textbook, we built a course where students learn to <strong>guide visitors through that museum in English</strong>.</p>
+    <div class="zh-block">永慶的校訓是「接國際」。離學校幾分鐘，就是世界級的亞洲藝術博物館——故宮南院。於是我們不用通用課本，而是做了一門課：讓學生學會「用英語帶訪客走進那座博物館」。</div>
+    <p>But the real gift is not the website — it is the <strong>method</strong>. Once you can produce one bilingual lesson with AI, you can produce twenty, about any landmark, in your own voice.</p>
+    <div class="zh-block">但真正的禮物不是這個網站，而是「方法」。一旦你能用 AI 產出一課雙語教材，你就能用同樣方式、針對任何在地題材，產出二十課，且保有你自己的風格。</div>
+  </div>
+</section>""")
+
+    # Flow
+    steps = []
+    for i, (en, zh, body_en, body_zh) in enumerate(WS_FLOW, 1):
+        steps.append(f"""<div class="flow-step">
+      <span class="sn">{i}</span>
+      <div><h3>{en}<span class="zh">{zh}</span></h3>
+      <p>{body_en}</p><p class="zh">{body_zh}</p></div>
+    </div>""")
+    steps_html = "\n    ".join(steps)
+    parts.append(f"""
+<section class="alt">
+  <div class="wrap">
+    <div class="section-head">
+      <span class="eyebrow">The making-of</span>
+      <h2>Five moves, start to finish</h2>
+      <div class="h2-zh">從零到一課，五個動作</div>
+    </div>
+    <div class="flow-steps">
+    {steps_html}
+    </div>
+  </div>
+</section>""")
+
+    # Prompts
+    cards = []
+    for tag, zh, body in WS_PROMPTS:
+        cards.append(f"""<div class="prompt-card">
+      <div class="pc-head"><span class="pc-tag">Prompt</span><span class="pc-title">{tag}<span class="zh">{zh}</span></span></div>
+      <pre>{body}</pre>
+    </div>""")
+    cards_html = "\n    ".join(cards)
+    parts.append(f"""
+<section>
+  <div class="wrap">
+    <div class="section-head">
+      <span class="eyebrow">Copy &amp; paste</span>
+      <h2>Prompts you can steal</h2>
+      <div class="h2-zh">可直接複製的 prompt 範例</div>
+      <p class="lede">Replace the <span style="color:var(--seal-deep);font-weight:700;background:var(--seal-soft);padding:0 5px;border-radius:4px;">highlighted parts</span> with your own landmark, level, and length. Then let the teacher in you take over.</p>
+    </div>
+    {cards_html}
+  </div>
+</section>""")
+
+    # Checklist
+    checks = []
+    for crit, en, zh in WS_CHECK:
+        checks.append(f'<li><div><strong>{crit}</strong> — {en}<span class="zh">{zh}</span></div></li>')
+    checks_html = "\n      ".join(checks)
+    parts.append(f"""
+<section class="alt">
+  <div class="wrap">
+    <div class="section-head">
+      <span class="eyebrow">The human step</span>
+      <h2>Before it reaches a student</h2>
+      <div class="h2-zh">送到學生面前之前，老師要做的事</div>
+    </div>
+    <ul class="checklist">
+      {checks_html}
+    </ul>
+  </div>
+</section>""")
+
+    # Takeaway
+    parts.append("""
+<section>
+  <div class="wrap ws-takeaway">
+    <p class="big">“Pick the landmark outside your window. The lesson is already there — AI just helps you write it down.”
+      <span class="zh">「選你窗外的那個地標。課程早就在那裡——AI 只是幫你把它寫下來。」</span></p>
+    <div class="ws-cta">
+      <a class="btn btn-primary" href="../welcome/" style="background:var(--seal);color:#fff;">See Lesson 1 in action →</a>
+    </div>
+  </div>
+</section>""")
+
+    parts.append(footer().replace("ASSET_JS", "../assets/js/app.js"))
+    html = "\n".join(parts)
+    out_dir = os.path.join(ROOT, "workshop")
+    os.makedirs(out_dir, exist_ok=True)
+    with open(os.path.join(out_dir, "index.html"), "w", encoding="utf-8") as f:
+        f.write(html)
+
+
 def main():
     render_hub()
     built = [render_lesson(i) for i in range(len(LESSONS))]
+    render_workshop()
     print("Built hub: index.html")
     print("Built lessons:", ", ".join(built))
+    print("Built workshop: workshop/index.html")
 
 
 if __name__ == "__main__":
