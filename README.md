@@ -6,7 +6,7 @@ The course turns the **National Palace Museum · Southern Branch** — the world
 
 Built and donated by [My Culture Connect 人師教育協會](https://www.mycultureconnect.org/), a Taiwanese non-profit. It also serves as a **live demo of "making bilingual teaching materials with AI"** for a teacher workshop at the school.
 
-**Live**: <https://lukelin7429.github.io/ycsh-bilingual/>
+**Live**: <https://ycsh.taiwan-bilingual.org/> — part of the [taiwan-bilingual.org](https://taiwan-bilingual.org/) umbrella site for My Culture Connect's cross-county school sites. (The old `lukelin7429.github.io/ycsh-bilingual/` address is retired.)
 
 ## Pages
 
@@ -51,10 +51,8 @@ See `photos/README.md`. Heroes currently render as ink-wash gradients (no broken
 - **Course fit** — which class slot this runs in (bilingual experimental class / international education / self-directed learning / club).
 - **Field visit** — whether students can rehearse a live tour at the museum (walking distance).
 
-## To bind a custom domain (when the school is ready)
+## Hosting & domain
 
-GitHub Pages serves this at `lukelin7429.github.io/ycsh-bilingual/`. To put it on a domain the school controls:
+This site is served on GitHub Pages from `main` (root) and published at the custom subdomain **`ycsh.taiwan-bilingual.org`** (see the `CNAME` file). It is one of several cross-county school sites under the **`taiwan-bilingual.org`** umbrella (distinct from `changhua-bilingual.org`, which is reserved for Changhua County).
 
-1. Use a **subdomain** (e.g. `bilingual.<domain>`), **not** an apex/naked domain — subdomains provision their HTTPS certificate cleanly on GitHub Pages.
-2. In the school's DNS console, add a `CNAME` record pointing the chosen hostname to `lukelin7429.github.io`.
-3. Add a `CNAME` file (one line: the hostname) to the repo root and set the custom domain in **Settings → Pages**. Wait for the certificate before enforcing HTTPS.
+The subdomain is a `CNAME` record pointing to `lukelin7429.github.io` (DNS-only) in the `taiwan-bilingual.org` zone (Cloudflare Registrar). All internal links are relative, so the move from the old `github.io` path to the subdomain required no page edits.
