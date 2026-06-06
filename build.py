@@ -778,7 +778,7 @@ def topbar(css_root, active=""):
 <header class="topbar">
   <div class="wrap topbar-inner">
     <a class="topbar-brand" href="{css_root}index.html">
-      <span class="topbar-seal">印</span>
+      <span class="topbar-seal">YC</span>
       <span class="topbar-name">Young Docents<small>南院小小英語導覽員 · 永慶高中</small></span>
     </a>
     <nav class="topbar-nav">

@@ -56,7 +56,7 @@ a:hover{color:var(--seal);}
   width:38px;height:38px;border-radius:7px;flex-shrink:0;
   background:var(--seal);color:#fff;
   display:flex;align-items:center;justify-content:center;
-  font-family:'PingFang TC',serif;font-size:21px;font-weight:600;
+  font-family:'Playfair Display',serif;font-size:16px;font-weight:700;letter-spacing:.02em;
   box-shadow:0 2px 8px -2px rgba(142,43,34,.5);
 }
 .topbar-name{
@@ -165,8 +165,8 @@ section{padding:88px 0;}
   box-shadow:var(--shadow);position:relative;overflow:hidden;
 }
 .about-aside::before{
-  content:"印";position:absolute;right:-10px;bottom:-22px;
-  font-family:'PingFang TC',serif;font-size:150px;color:rgba(181,57,46,.16);line-height:1;
+  content:"YC";position:absolute;right:6px;bottom:-30px;
+  font-family:'Playfair Display',serif;font-weight:700;font-size:128px;color:rgba(181,57,46,.16);line-height:1;letter-spacing:-.02em;
 }
 .about-aside .label{
   font-size:12.5px;letter-spacing:.2em;text-transform:uppercase;
