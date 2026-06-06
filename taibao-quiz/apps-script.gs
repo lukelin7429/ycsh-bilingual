@@ -75,3 +75,39 @@ function _smokeTest() {
     user_agent: 'smoke-test'
   }) } });
 }
+
+/**
+ * Live stats tab — run ONCE from the editor (select setupStats → Run).
+ * Creates a "Stats" tab with LIVE formulas: respondent count, average score,
+ * and per-question correct rate (with a bar). They auto-update as new rows
+ * arrive — no redeploy needed, because this only reads the Responses tab.
+ */
+function setupStats() {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var st = ss.getSheetByName('Stats') || ss.insertSheet('Stats');
+  st.clear();
+  var R = TAB;                                  // 'Responses'
+  var cols = ['F','G','H','I','J','K','L','M','N','O'];  // Q1..Q10 columns
+
+  st.getRange('A1').setValue('即時統計 Live Stats').setFontSize(18).setFontWeight('bold').setFontColor('#b5392e');
+  st.getRange('A2').setValue('作答人數 Respondents');
+  st.getRange('B2').setFormula('=COUNTA(' + R + '!C2:C1000)');
+  st.getRange('A3').setValue('平均分 Average (／10)');
+  st.getRange('B3').setFormula('=IFERROR(ROUND(AVERAGE(' + R + '!D2:D1000),1),0)');
+
+  st.getRange('A5').setValue('題號 Q').setFontWeight('bold');
+  st.getRange('B5').setValue('答對率 Correct %').setFontWeight('bold');
+  st.getRange('C5').setValue('長條 Bar').setFontWeight('bold');
+
+  for (var i = 0; i < 10; i++) {
+    var r = 6 + i, c = cols[i];
+    st.getRange('A' + r).setValue('Q' + (i + 1));
+    st.getRange('B' + r).setFormula(
+      '=IFERROR(ROUND(SUMPRODUCT(--ISNUMBER(SEARCH("✓",' + R + '!' + c + '2:' + c + '1000)))' +
+      '/COUNTA(' + R + '!' + c + '2:' + c + '1000)*100,0),0)');
+    st.getRange('C' + r).setFormula('=IFERROR(REPT("█",ROUND(B' + r + '/5,0)),"")');
+  }
+  st.getRange('B2:B3').setFontWeight('bold');
+  st.setColumnWidth(1, 170); st.setColumnWidth(2, 150); st.setColumnWidth(3, 280);
+  st.setFrozenRows(1);
+}
