@@ -1,0 +1,103 @@
+/* Taibao Quiz — page-specific styles (loaded after main.css).
+   Reuses the ink-charcoal + cinnabar-seal palette from main.css. */
+
+.quiz-wrap{max-width:760px;margin:0 auto;}
+
+/* Scan-to-play card (shown on the projector / wide screens) */
+.qr-card{
+  display:flex;gap:26px;align-items:center;
+  background:#fff;border:1px solid var(--line);border-radius:18px;
+  padding:26px 30px;box-shadow:var(--shadow-sm);margin-bottom:46px;
+}
+.qr-card img{width:150px;height:150px;border-radius:10px;border:1px solid var(--line);}
+.qr-card .qr-text .label{font-size:13px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--seal-deep);margin-bottom:8px;}
+.qr-card .qr-text h2{font-family:'Playfair Display','PingFang TC',serif;font-size:26px;color:var(--ink-deep);font-weight:600;line-height:1.2;margin-bottom:4px;}
+.qr-card .qr-text p{font-size:16px;color:var(--ink-soft);line-height:1.55;margin-top:6px;}
+.qr-card .qr-text .url{font-family:'SFMono-Regular',Menlo,monospace;font-size:13.5px;color:var(--seal-deep);margin-top:8px;word-break:break-all;}
+@media (max-width:560px){ .qr-card{display:none;} }   /* phones already have the page */
+
+/* Class / name fields */
+.meta-fields{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:14px;}
+.field label{display:block;font-size:14px;font-weight:700;letter-spacing:.04em;color:var(--ink-deep);margin-bottom:7px;}
+.field label .zh{font-family:'PingFang TC',sans-serif;color:var(--ink-soft);font-weight:500;margin-left:6px;font-size:13.5px;}
+.field input{
+  width:100%;font:inherit;font-size:18px;color:var(--ink-deep);
+  padding:13px 16px;border:1.5px solid var(--line);border-radius:11px;background:#fff;
+  transition:border-color .15s,box-shadow .15s;
+}
+.field input:focus{outline:none;border-color:var(--seal);box-shadow:0 0 0 3px var(--seal-soft);}
+.field.err input{border-color:var(--seal);background:#fff7f6;}
+
+/* Question cards */
+.qz-q{
+  background:#fff;border:1px solid var(--line);border-radius:14px;
+  padding:24px 26px;margin-bottom:18px;border-left:4px solid var(--mist2);
+  transition:border-left-color .2s;
+}
+.qz-q.answered{border-left-color:var(--seal);}
+.qz-q .q-no{font-family:'Playfair Display',serif;font-weight:700;color:var(--seal);font-size:15px;letter-spacing:.06em;}
+.qz-q .q-text{font-size:19px;font-weight:700;color:var(--ink-deep);line-height:1.5;margin:4px 0 4px;}
+.qz-q .q-zh{font-family:'PingFang TC',sans-serif;font-size:15px;color:var(--ink-soft);margin-bottom:16px;}
+.qz-opts{display:grid;gap:10px;}
+.qz-opt{
+  display:flex;align-items:center;gap:12px;cursor:pointer;
+  border:1.5px solid var(--line);border-radius:11px;padding:13px 16px;
+  font-size:17px;color:var(--ink);transition:border-color .15s,background .15s;
+}
+.qz-opt:hover{border-color:var(--seal);background:var(--seal-soft);}
+.qz-opt input{position:absolute;opacity:0;width:0;height:0;}
+.qz-opt .tick{
+  flex-shrink:0;width:24px;height:24px;border-radius:50%;border:2px solid var(--mist2);
+  display:flex;align-items:center;justify-content:center;font-size:13px;color:#fff;transition:.15s;
+}
+.qz-opt .letter{font-family:'Playfair Display',serif;font-weight:700;color:var(--ink-soft);width:18px;}
+.qz-opt.sel{border-color:var(--seal);background:var(--seal-soft);}
+.qz-opt.sel .tick{background:var(--seal);border-color:var(--seal);}
+.qz-opt.sel .tick::after{content:"✓";}
+.qz-opt.sel .letter{color:var(--seal-deep);}
+
+/* After grading */
+.qz-q.graded .qz-opt{cursor:default;}
+.qz-opt.is-correct{border-color:var(--jade);background:var(--jade-soft);}
+.qz-opt.is-correct .tick{background:var(--jade);border-color:var(--jade);}
+.qz-opt.is-correct .tick::after{content:"✓";}
+.qz-opt.is-wrong{border-color:var(--seal);background:#fdeeec;}
+.qz-opt.is-wrong .tick{background:var(--seal);border-color:var(--seal);}
+.qz-opt.is-wrong .tick::after{content:"✗";}
+.qz-explain{
+  margin-top:14px;font-size:15.5px;line-height:1.6;color:var(--ink);
+  background:var(--mist);border-left:3px solid var(--jade);border-radius:0 8px 8px 0;
+  padding:12px 16px;display:none;
+}
+.qz-q.graded .qz-explain{display:block;}
+.qz-explain .zh{font-family:'PingFang TC',sans-serif;display:block;color:var(--ink-soft);font-size:14.5px;margin-top:5px;}
+
+/* Submit */
+.qz-submit{
+  display:inline-flex;align-items:center;gap:10px;margin-top:8px;
+  background:var(--seal);color:#fff;border:0;border-radius:99px;cursor:pointer;
+  font:inherit;font-weight:700;font-size:18px;letter-spacing:.03em;padding:16px 38px;
+  transition:background .2s,transform .2s;
+}
+.qz-submit:hover{background:var(--seal-deep);transform:translateY(-2px);}
+.qz-submit:disabled{background:var(--mist2);color:var(--ink-soft);cursor:default;transform:none;}
+.qz-note{font-size:14.5px;color:var(--ink-soft);margin-top:14px;line-height:1.5;}
+.qz-warn{color:var(--seal-deep);font-weight:700;margin-top:14px;display:none;}
+.qz-warn.show{display:block;}
+
+/* Result panel */
+.qz-result{display:none;background:var(--ink-deep);color:#fff;border-radius:18px;padding:40px 34px;text-align:center;margin-bottom:30px;}
+.qz-result.show{display:block;animation:rise .4s ease;}
+@keyframes rise{from{opacity:0;transform:translateY(12px);}to{opacity:1;transform:none;}}
+.qz-result .r-label{font-size:13px;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:#f5cec6;margin-bottom:14px;}
+.qz-result .score{font-family:'Playfair Display',serif;font-size:64px;font-weight:700;line-height:1;}
+.qz-result .score small{font-size:30px;color:rgba(255,255,255,.6);}
+.qz-result .r-name{font-size:18px;margin-top:14px;color:rgba(255,255,255,.9);}
+.qz-result .r-msg{font-size:17px;margin-top:10px;color:rgba(255,255,255,.8);line-height:1.6;}
+.qz-result .r-msg .zh{font-family:'PingFang TC',sans-serif;display:block;font-size:15px;color:rgba(255,255,255,.65);margin-top:6px;}
+.qz-result .r-sent{font-size:14px;margin-top:18px;color:#f5cec6;}
+
+@media (max-width:560px){
+  .meta-fields{grid-template-columns:1fr;}
+  .qz-result .score{font-size:52px;}
+}

@@ -786,6 +786,7 @@ def topbar(css_root, active=""):
       <a href="{css_root}index.html#lessons">8 Lessons</a>
       <a href="{css_root}docent/"{cls('docent')}>Capstone</a>
       <a href="{css_root}workshop/"{cls('workshop')}>For Teachers</a>
+      <a href="{css_root}taibao-quiz/"{cls('quiz')}>Taibao Quiz</a>
     </nav>
   </div>
 </header>"""

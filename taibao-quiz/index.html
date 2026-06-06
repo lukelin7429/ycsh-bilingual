@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Taibao Quiz · How well do you know our town? · Young Docents of the Southern Branch</title>
+<meta name="description" content="A quick bilingual quiz about Taibao City — scan, answer on your phone, and see your score. Part of the Yung Ching SHS bilingual course.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500;1,600&family=Lato:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/css/main.css">
+<link rel="stylesheet" href="quiz.css">
+</head>
+<body>
+
+<header class="topbar">
+  <div class="wrap topbar-inner">
+    <a class="topbar-brand" href="../index.html">
+      <span class="topbar-seal">印</span>
+      <span class="topbar-name">Young Docents<small>南院小小英語導覽員 · 永慶高中</small></span>
+    </a>
+    <nav class="topbar-nav">
+      <a href="../index.html">Course Home</a>
+      <a href="../index.html#lessons">8 Lessons</a>
+      <a href="../docent/">Capstone</a>
+      <a href="../workshop/">For Teachers</a>
+      <a href="./" class="is-active">Taibao Quiz</a>
+    </nav>
+  </div>
+</header>
+
+<section class="page-hero tone-seal">
+  <div class="wrap">
+    <span class="lesson-no">Interactive · 互動測驗</span>
+    <h1>How well do you know our town?<span class="zh">你有多了解太保？</span></h1>
+    <p class="tagline">Ten quick questions about Taibao City. Answer on your phone and get your score.
+      <span class="zh">十個關於太保市的小問題。用手機作答，馬上看到分數。</span></p>
+    <span class="gallery-pill">📍 Taibao City · 太保市 · 嘉義縣縣治</span>
+  </div>
+</section>
+
+<div class="lesson-body"><div class="wrap"><div class="quiz-wrap">
+
+  <!-- Scan to play (projector only) -->
+  <div class="qr-card">
+    <img src="qr.png" alt="QR code to open this quiz">
+    <div class="qr-text">
+      <div class="label">Scan to play · 掃描作答</div>
+      <h2>Open this on your phone</h2>
+      <p>Point your camera at the QR code, then answer right here on your own screen.<br>
+        <span class="zh">用手機相機掃一下，就能在自己的手機上作答。</span></p>
+      <div class="url">ycsh.taiwan-bilingual.org/taibao-quiz</div>
+    </div>
+  </div>
+
+  <!-- Result (hidden until submit) -->
+  <div class="qz-result" id="result">
+    <div class="r-label">Your score · 你的分數</div>
+    <div class="score"><span id="scoreNum">0</span><small> / 10</small></div>
+    <div class="r-name" id="resultName"></div>
+    <div class="r-msg" id="resultMsg"></div>
+    <div class="r-sent" id="resultSent"></div>
+  </div>
+
+  <form id="quizForm" novalidate>
+    <!-- Class + name -->
+    <div class="meta-fields">
+      <div class="field" id="fieldClass">
+        <label for="cls">Class <span class="zh">班級</span></label>
+        <input type="text" id="cls" name="cls" autocomplete="off" placeholder="e.g. 101 / 高一忠">
+      </div>
+      <div class="field" id="fieldName">
+        <label for="nm">Name <span class="zh">姓名</span></label>
+        <input type="text" id="nm" name="nm" autocomplete="off" placeholder="Your name 你的名字">
+      </div>
+    </div>
+    <p class="qz-note">Fill in your class and name, answer all ten questions, then press <strong>Submit</strong>.
+      <span class="zh">填好班級姓名、答完十題，再按「Submit」。</span></p>
+
+    <div id="questions"></div>
+
+    <p class="qz-warn" id="warn">Please fill in your class and name, and answer every question. 請填好班級姓名並答完每一題。</p>
+    <button type="submit" class="qz-submit" id="submitBtn">Submit my answers · 送出作答</button>
+    <p class="qz-note" id="backendNote"></p>
+  </form>
+
+</div></div></div>
+
+<nav class="lesson-nav"><div class="wrap">
+  <a class="nav-link prev" href="../index.html"><span class="dir">← Course Home</span><span class="t">Young Docents of the Southern Branch</span></a>
+  <a class="nav-link next" href="../welcome/"><span class="dir">The course · 課程 →</span><span class="t">Lesson 1: Welcome</span></a>
+</div></nav>
+
+<footer>
+  <div class="wrap">
+    <span>© <span class="zh">嘉義縣立永慶高級中學</span> · Yung Ching Senior High School</span>
+    <span class="partner">A gift from <a href="https://www.mycultureconnect.org/">My Culture Connect 人師教育協會</a></span>
+  </div>
+  <div class="wrap"><span class="note">A live demo of a self-made bilingual quiz: students answer on their phones and results flow straight into a Google Sheet.</span></div>
+</footer>
+
+<script>
+/* =================================================================
+   Taibao City Quiz — front end
+   - Renders questions, grades them in the browser, shows a score.
+   - Posts {class, name, score, answers...} to a Google Apps Script
+     Web App, which appends one row to a Google Sheet.
+   - SET THE ENDPOINT below after you deploy the Apps Script
+     (see apps-script.gs + SETUP.md in this folder).
+   ================================================================= */
+
+// 1) Paste your deployed Apps Script Web App URL here:
+const ENDPOINT = "PASTE_YOUR_APPS_SCRIPT_WEB_APP_URL_HERE";
+const FORM_ID  = "ycsh_taibao_quiz";
+
+// 2) The quiz. options are English-only; "a" is the correct index.
+const QUESTIONS = [
+  { q: "Taibao City is the seat of which county government?",
+    zh: "太保市是哪一個縣的縣治（縣政府所在地）？",
+    o: ["Chiayi County", "Yunlin County", "Tainan City", "Changhua County"], a: 0,
+    ex: "Taibao is the seat of Chiayi County — the county government, the HSR station, and the Palace Museum's Southern Branch are all here.",
+    exZh: "太保市是嘉義縣縣治，縣政府、高鐵站與故宮南院都在這裡。" },
+
+  { q: "The world-class museum in Taibao is the Southern Branch of the ___.",
+    zh: "太保市那座世界級博物館，是哪一座博物館的南部院區？",
+    o: ["National Palace Museum", "British Museum", "Louvre", "Taipei Fine Arts Museum"], a: 0,
+    ex: "It is the Southern Branch of the National Palace Museum (故宮南院).",
+    exZh: "那是國立故宮博物院南部院區（故宮南院）。" },
+
+  { q: "The Southern Branch is mainly a museum of ___.",
+    zh: "故宮南院主要是哪一類的博物館？",
+    o: ["Asian art and culture", "dinosaurs and fossils", "space and rockets", "European oil paintings"], a: 0,
+    ex: "It is positioned as an Asian Art and Culture Museum — wider than the Taipei museum's focus on Chinese treasures.",
+    exZh: "它定位為「亞洲藝術文化博物館」，比臺北故宮的中國文物視野更寬廣。" },
+
+  { q: "In which year did the Southern Branch open to the public?",
+    zh: "故宮南院哪一年開幕？",
+    o: ["2015", "1995", "2008", "2021"], a: 0,
+    ex: "The Southern Branch opened in 2015, beside the high-speed rail in Taibao.",
+    exZh: "故宮南院於 2015 年開幕，就在太保的高鐵站旁。" },
+
+  { q: "The name “Taibao” honours the local hero Wang De-lu, who earned which grand title?",
+    zh: "「太保」這個地名是紀念在地英雄王得祿，他得到的尊銜是？",
+    o: ["Grand Guardian of the Heir Apparent (太子太保)", "Emperor (皇帝)", "Prime Minister (宰相)", "General of the Sea (海軍上將)"], a: 0,
+    ex: "Wang De-lu was honoured as 太子太保 (Grand Guardian of the Heir Apparent); the town's name comes from that title.",
+    exZh: "王得祿受封「太子太保」，太保的地名正源自這個尊銜。" },
+
+  { q: "Yung Ching Senior High School is named after which person?",
+    zh: "永慶高中是以哪一位人物命名的？",
+    o: ["Wang Yung-ching, founder of Formosa Plastics", "Sun Yat-sen", "Chiang Kai-shek", "Wang De-lu"], a: 0,
+    ex: "The school was renamed in 2008 to honour Wang Yung-ching (王永慶), founder of the Formosa Plastics Group; its motto 勤勞樸實 echoes his spirit.",
+    exZh: "學校 2008 年改名以紀念台塑集團創辦人王永慶，校訓「勤勞樸實」呼應其精神。" },
+
+  { q: "Which high-speed rail station is located in Taibao?",
+    zh: "哪一個高鐵站位於太保市？",
+    o: ["THSR Chiayi Station", "THSR Tainan Station", "THSR Taichung Station", "THSR Zuoying Station"], a: 0,
+    ex: "THSR Chiayi Station sits in Taibao, making the town a transport gateway to southern Taiwan.",
+    exZh: "高鐵嘉義站就在太保，讓這座城市成為台灣南部的交通門戶。" },
+
+  { q: "The Southern Branch building's flowing shape was inspired by ___.",
+    zh: "故宮南院流動的建築造型，靈感來自什麼？",
+    o: ["Chinese calligraphy (brush and ink)", "a sailing ship", "a giant teapot", "a computer chip"], a: 0,
+    ex: "Architect Kris Yao based it on three brush techniques — solid ink, flying white, and wash.",
+    exZh: "建築師姚仁喜以書法三筆「濃墨、飛白、渲染」為設計依據。" },
+
+  { q: "The building's three volumes symbolise three Asian civilisations: China, India, and ___.",
+    zh: "建築的三道量體象徵三大亞洲文明：中國、印度，以及？",
+    o: ["Persia", "Japan", "Egypt", "Greece"], a: 0,
+    ex: "Dragon (China), elephant (India), and horse (Persia) — three civilisations meeting, just like Yung Ching's motto “connect with the world.”",
+    exZh: "龍（中國）、象（印度）、馬（波斯）三文明交會，正如永慶校訓「接國際」。" },
+
+  { q: "Taibao lies on which large plain, often called Taiwan's “rice bowl”?",
+    zh: "太保位於哪一片大平原（常被稱為台灣的「糧倉」）？",
+    o: ["Chianan Plain (嘉南平原)", "Yilan Plain (蘭陽平原)", "Pingtung Plain (屏東平原)", "Taipei Basin (台北盆地)"], a: 0,
+    ex: "Taibao sits on the Chianan Plain, the wide farmland of Chiayi and Tainan watered by the Chianan Irrigation system.",
+    exZh: "太保位於嘉南平原，是嘉義、台南一帶由嘉南大圳灌溉的廣大農業平原。" },
+];
+
+const LETTERS = ["A","B","C","D"];
+const qRoot = document.getElementById("questions");
+
+QUESTIONS.forEach(function(item, qi){
+  const card = document.createElement("div");
+  card.className = "qz-q";
+  card.dataset.qi = qi;
+  let opts = "";
+  item.o.forEach(function(opt, oi){
+    opts +=
+      '<label class="qz-opt" data-oi="'+oi+'">' +
+        '<input type="radio" name="q'+qi+'" value="'+oi+'">' +
+        '<span class="tick"></span>' +
+        '<span class="letter">'+LETTERS[oi]+'</span>' +
+        '<span class="opt-text">'+opt+'</span>' +
+      '</label>';
+  });
+  card.innerHTML =
+    '<div class="q-no">Question '+(qi+1)+' / 10</div>' +
+    '<div class="q-text">'+item.q+'</div>' +
+    '<div class="q-zh">'+item.zh+'</div>' +
+    '<div class="qz-opts">'+opts+'</div>' +
+    '<div class="qz-explain"><span class="ex-en"></span><span class="zh"></span></div>';
+  qRoot.appendChild(card);
+});
+
+// selection highlight
+qRoot.addEventListener("change", function(e){
+  if(e.target.type !== "radio") return;
+  const card = e.target.closest(".qz-q");
+  card.classList.add("answered");
+  card.querySelectorAll(".qz-opt").forEach(function(l){ l.classList.remove("sel"); });
+  e.target.closest(".qz-opt").classList.add("sel");
+});
+
+const form = document.getElementById("quizForm");
+const warn = document.getElementById("warn");
+let submitted = false;
+
+form.addEventListener("submit", function(e){
+  e.preventDefault();
+  if(submitted) return;
+
+  const cls = document.getElementById("cls").value.trim();
+  const nm  = document.getElementById("nm").value.trim();
+  const answers = QUESTIONS.map(function(_, qi){
+    const sel = form.querySelector('input[name="q'+qi+'"]:checked');
+    return sel ? parseInt(sel.value, 10) : -1;
+  });
+
+  // validate
+  document.getElementById("fieldClass").classList.toggle("err", !cls);
+  document.getElementById("fieldName").classList.toggle("err", !nm);
+  const allAnswered = answers.every(function(a){ return a >= 0; });
+  if(!cls || !nm || !allAnswered){
+    warn.classList.add("show");
+    const firstMissing = document.querySelector(".field.err input") ||
+      (function(){ const i = answers.indexOf(-1); return i>=0 ? qRoot.children[i] : null; })();
+    if(firstMissing) firstMissing.scrollIntoView({behavior:"smooth", block:"center"});
+    return;
+  }
+  warn.classList.remove("show");
+  submitted = true;
+
+  // grade + reveal
+  let score = 0;
+  QUESTIONS.forEach(function(item, qi){
+    const card = qRoot.children[qi];
+    card.classList.add("graded");
+    const chosen = answers[qi];
+    if(chosen === item.a) score++;
+    card.querySelectorAll(".qz-opt").forEach(function(l){
+      const oi = parseInt(l.dataset.oi,10);
+      if(oi === item.a) l.classList.add("is-correct");
+      else if(oi === chosen) l.classList.add("is-wrong");
+      l.querySelector("input").disabled = true;
+    });
+    card.querySelector(".ex-en").textContent = item.ex;
+    card.querySelector(".qz-explain .zh").textContent = item.exZh;
+  });
+
+  // result panel
+  document.getElementById("scoreNum").textContent = score;
+  document.getElementById("resultName").textContent = nm + (cls ? "  ·  " + cls : "");
+  const msg = score >= 9 ? ["Outstanding — you really know Taibao!", "太厲害了，你超懂太保！"]
+            : score >= 6 ? ["Nice work! A solid Taibao local.", "答得不錯，是個道地的太保通！"]
+            : score >= 3 ? ["Good start — now you know our town a little better.", "不錯的開始，你更認識太保了！"]
+            :              ["Welcome to Taibao — there's a whole museum to explore!", "歡迎認識太保——門口就有一整座博物館等你探索！"];
+  document.getElementById("resultMsg").innerHTML = msg[0] + '<span class="zh">' + msg[1] + '</span>';
+
+  const submitBtn = document.getElementById("submitBtn");
+  submitBtn.disabled = true;
+  submitBtn.textContent = "Submitted · 已送出";
+  const result = document.getElementById("result");
+  result.classList.add("show");
+  result.scrollIntoView({behavior:"smooth", block:"start"});
+
+  // send to backend (best-effort; the page works even if not configured)
+  const sentEl = document.getElementById("resultSent");
+  const payload = { form_id: FORM_ID, cls: cls, name: nm, score: score, total: 10,
+                    answers: answers.map(function(a, qi){
+                      return LETTERS[a] + (a === QUESTIONS[qi].a ? " ✓" : " ✗");
+                    }), user_agent: navigator.userAgent };
+
+  if(ENDPOINT && ENDPOINT.indexOf("PASTE_") === -1){
+    fetch(ENDPOINT, { method:"POST", mode:"no-cors",
+                      headers:{ "Content-Type":"text/plain;charset=utf-8" },
+                      body: JSON.stringify(payload) })
+      .then(function(){ sentEl.textContent = "✓ Your answers were recorded. 你的作答已記錄。"; })
+      .catch(function(){ sentEl.textContent = "(Saved locally — backend not reachable right now.)"; });
+  } else {
+    sentEl.textContent = "(Demo mode — backend not connected yet. 後端尚未連接。)";
+  }
+});
+</script>
+</body>
+</html>
